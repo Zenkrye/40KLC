@@ -17,7 +17,7 @@ Settings:set("MinSimilarity", SIMILAR)
 ROOT = scriptPath()
 
 --Sets a custom path for my images folder, make sure your imagename.png is in yoyr images folder
-DIR_IMAGES = ROOT .. "Image"
+DIR_IMAGES = ROOT .. "Images"
 setImagePath(DIR_IMAGES)
 
 
@@ -123,8 +123,37 @@ function mine(res, line)
 	end
 end
 
+function updateVer()
+	local imgs = { 'Starmap.png',  'Explore.png', 'MineCrystal.png', 'MinePlasma.png', 'MineAdamantium.png',
+							 'MineFuel.png', 'MineMetal.png', 'Base.png', 'Search.png', 'CollectMetal.png',
+							'CollectFuel.png', 'CollectAdamantium.png', 'CollectPlasma.png', 'Marches.png',
+							'Line5.png', 'Line4.png', 'Line3.png', 'Line2.png', 'Line1.png', 'Collect.png', 'Deploy.png',
+							'Help.png', 'Close.png' }
+
+-- Setup Github and check for updates
+	gitVersion = loadstring(httpGet("https://raw.githubusercontent.com/Zenkrye/40KLC/main/40KLCver.lua"))
+	webVersion = gitVersion()
+	curVersion = dofile(ROOT .."40KLCver.lua")
+	print('New Version: ' .. webVersion .. '  Current Version: ' .. curVersion)
+	if curVersion == webVersion then
+    	toast ("You are running the most current version!")
+	else
+ 	   httpDownload("https://raw.github.com/Zenkrye/40KLC/main/40KLCver.lua", ROOT .."40KLCver.lua")
+		httpDownload("https://raw.github.com/Zenkrye/40KLC/main/40KLC.luae3", ROOT .."40KLC.luae3")
+		for i = 1, table.getn(imgs) do
+			toast ("Updating files " .. i .. " of " .. table.getn(imgs))
+			gitImg = "https://raw.github.com/Zenkrye/40KLC/main/Images/" .. imgs[i]
+			--print(gitImg .. " Dir: " .. DIR_IMAGES .. " Img: " .. imgs[i].pat)
+			--print(gitImg .. DIR_IMAGES .. imgs[i].pat)
+			httpDownload(gitImg , DIR_IMAGES .. "/" .. imgs[i])
+			total = i
+		end 	 
+		scriptExit("Star Trek Fleet Command has been updated! " .. total .. " images updated")
+	end
+end
+
 --- Main ---
---updateVer()
+updateVer()
 
 --Only initialize t / timer ONCE during script!
 dialogLogin()
