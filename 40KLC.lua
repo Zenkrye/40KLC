@@ -48,9 +48,14 @@ function marchcheck()
 	else
 		cp = true print('Mine Plasma')
 	end
+	if reg:exists('CollectCrystal.png') then
+		cp = false print('Crystal Found')
+	else
+		cp = true print('Mine Crystal')
+	end
 	Region(4, 215, 90, 90):existsClick('Marches.png')
 	wait(.5)
-	return cf, cm, ca, cp
+	return cf, cm, ca, cp, cc
 end
 
 function dialogLogin()
@@ -88,6 +93,8 @@ function dialogFull()
 	addSpinnerIndex("spPlasma", siLine, "NONE")
 	newRow()
 	addCheckBox("cbCrystal", "Crystal", true)
+	addTextView("  Line Up:  ")
+	addSpinnerIndex("spCrystal", siLine, "NONE")
 
 	dialogShowFullScreen("Warhammer 40k Lost Crusade")
 end
@@ -113,8 +120,10 @@ function mine(res, line)
 		Region(728, 280, 86, 86):existsClick('Collect.png')
 		wait(1)
 		if cbDebug then line.reg:highlight(.5) end
-		line.reg:existsClick(line.tar)
-		wait(1)
+                if not line == 1 then
+		    line.reg:existsClick(line.tar)
+                    wait(1)
+                end
 		if cbDebug then Region(973, 597, 86, 86):highlight(.5) end
 		if not Region(973, 597, 86, 86):existsClick('Deploy.png') then
 			Region(1100, 7, 90, 90):existsClick('Close.png')
@@ -128,7 +137,7 @@ function updateVer()
 							 'MineFuel.png', 'MineMetal.png', 'Base.png', 'Search.png', 'CollectMetal.png',
 							'CollectFuel.png', 'CollectAdamantium.png', 'CollectPlasma.png', 'Marches.png',
 							'Line5.png', 'Line4.png', 'Line3.png', 'Line2.png', 'Line1.png', 'Collect.png', 'Deploy.png',
-							'Help.png', 'Close.png' }
+							'Help.png', 'Close.png', 'CollectCrystal.png' }
 
 -- Setup Github and check for updates
 	gitVersion = loadstring(httpGet("https://raw.githubusercontent.com/Zenkrye/40KLC/main/40KLCver.lua"))
@@ -172,6 +181,7 @@ table.insert(rss, { id = '1', tar = 'MineMetal.png', reg = Region(450, 463, 80, 
 table.insert(rss, { id = '2', tar = 'MineFuel.png', reg = Region(550, 460, 80, 80)})
 table.insert(rss, { id = '3', tar = 'MineAdamantium.png', reg = Region(652, 466, 80, 80)})
 table.insert(rss, { id = '4', tar = 'MinePlasma.png', reg = Region(750, 463, 80, 80)})
+table.insert(rss, { id = '5', tar = 'MineCrystal.png', reg = Region(850, 463, 80, 80)})
 
 local line = {}
 table.insert(line, { id = '0', tar = 'NONE', reg = Region(450, 463, 80, 80)})
@@ -184,11 +194,12 @@ table.insert(line, { id = '5', tar = 'Line5.png', reg = Region(482, 620, 86, 86)
 while (true)
 do
 	if (CheckTimer:check() > check) then
-		bFuel, bMetal, bAdamantium, bPlasma = marchcheck()
+		bFuel, bMetal, bAdamantium, bPlasma, bCrystal = marchcheck()
 		if bMetal and cbMetal then mine(rss[1], line[spMetal]) end
 		if bFuel and cbFuel then mine(rss[2], line[spFuel])	end
 		if bAdamantium and cbAdamantium then mine(rss[3], line[spAdam]) end
 		if bPlasma and cbPlasma then mine(rss[4], line[spPlasma]) end
+		if bCrystal and cbCrystal then mine(rss[5], line[spCrystal]) end
 		check = CheckTimer:check() + 5*60
 	end
 	if cbDebug then Region(840, 520, 360, 90):highlight(.5) end
