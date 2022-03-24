@@ -20,6 +20,83 @@ ROOT = scriptPath()
 DIR_IMAGES = ROOT .. "Images"
 setImagePath(DIR_IMAGES)
 
+setHighlightTextStyle(0x96666666, 0xf8ffffff, 6)
+
+--These 3 lines are where your paint / debug info will be displayed on your screen
+REG_PAINT_LINE1 = Region(1080, 10, 242, 34)
+REG_PAINT_LINE2 = Region(1080, 43, 242, 34)
+REG_PAINT_LINE3 = Region(1080, 76, 242, 34)
+
+function paint(section)
+    local seconds = StaTimer:check()
+    REG_PAINT_LINE1:highlightOff()
+    REG_PAINT_LINE2:highlightOff()
+    REG_PAINT_LINE3:highlightOff()
+    REG_PAINT_LINE1:highlight("Runtime: " .. secondsToClock(seconds) .. "")
+    --REG_PAINT_LINE2:highlight("T: " .. TARGETS .. " A: " .. ATTACKS .. " R: " .. REPAIRS .. " D: " .. DEATHS .. " M: " .. MINE)
+    if (cbDebug) then 
+		REG_PAINT_LINE3:highlight("Debug Section: " .. section)
+	else
+		REG_PAINT_LINE3:highlight("Section: " .. section)
+	end
+end
+
+--function to convert seconds to easier-to-read string:
+function secondsToClock(seconds)
+    local seconds = tonumber(seconds)
+    if seconds <= 0 then
+        return "00:00:00";
+    else
+        hours = string.format("%02.f", math.floor(seconds/3600));
+        mins = string.format("%02.f", math.floor(seconds/60 - (hours*60)));
+        secs = string.format("%02.f", math.floor(seconds - hours*3600 - mins *60));
+        return hours..":"..mins..":"..secs
+    end
+end
+
+function regionWaitMulti(target, seconds, debug, skipLocation, index, previousSnap, colorMatch)
+    local timer = Timer()
+    local match
+    local length = table.getn(target)
+    if (index > length or index <= 0) then
+        index = 1
+    end
+
+    while (true) do
+        --        for i, t in ipairs(target) do
+        if (not previousSnap) then
+            if (colorMatch) then
+            	--print('Color')
+                snapshotColor()
+            else
+                snapshot()
+            end
+        end
+        usePreviousSnap(true)
+        for i = index, length do
+            local t = target[i]
+            local image = t.target
+
+            if ((t.region and (t.region):exists(image, 0)) or
+                    (not t.region and exists(image, 0))) then -- check once
+                usePreviousSnap(false)
+                if (t.region) then
+                    match = (t.region):getLastMatch()
+                else
+                    match = getLastMatch()
+                end
+                --            if (debug) then match:offset(0, -cutoutHeight):highlight(0.5) end
+                return i, t.id, match
+            end
+        end
+        index = 1
+        if (skipLocation ~= nil) then click(skipLocation) end
+        if (timer:check() > seconds) then
+            usePreviousSnap(false)
+            return -1, "__none__"
+        end
+    end
+end
 
 function marchcheck()
 	if Region(4, 215, 90, 90):existsClick('Marches.png') then
@@ -49,9 +126,9 @@ function marchcheck()
 		cp = true print('Mine Plasma')
 	end
 	if reg:exists('CollectCrystal.png') then
-		cp = false print('Crystal Found')
+		cc = false print('Crystal Found')
 	else
-		cp = true print('Mine Crystal')
+		cc = true print('Mine Crystal')
 	end
 	Region(4, 215, 90, 90):existsClick('Marches.png')
 	wait(.5)
@@ -69,33 +146,37 @@ function dialogFull()
 	-- Give the user options
 	dialogInit()
 	siLine = {"NONE", "Line 1", "Line 2", "Line 3", "Line 4", "Line 5"}
+	siAction = {"NONE", "Mine Metal", "Mine Fuel", "Mine Adamantium", "Mine Plasma", "Mine Crystal"}
 	addTextView("Settings")
 	newRow()
 	addTextView("   ")
 	addCheckBox("cbDebug", "Debug Highlights", false)
 	newRow()
-	addTextView("Select Resources to Mine")
-	newRow()
-	addCheckBox("cbMetal", "Metal", true)
+	addTextView("March 1: ")
+	addSpinnerIndex("spAction1", siAction, "NONE")
 	addTextView("  Line Up:  ")
-	addSpinnerIndex("spMetal", siLine, "NONE")
+	addSpinnerIndex("spLine1", siLine, "NONE")
 	newRow()
-	addCheckBox("cbFuel", "Fuel", true)
+	addTextView("March 2: ")
+	addSpinnerIndex("spAction2", siAction, "NONE")
 	addTextView("  Line Up:  ")
-	addSpinnerIndex("spFuel", siLine, "NONE")
+	addSpinnerIndex("spLine2", siLine, "NONE")
 	newRow()
-	addCheckBox("cbAdamantium", "Adamantium", true)
+	addTextView("March 3: ")
+	addSpinnerIndex("spAction3", siAction, "NONE")
 	addTextView("  Line Up:  ")
-	addSpinnerIndex("spAdam", siLine, "NONE")
+	addSpinnerIndex("spLine3", siLine, "NONE")
 	newRow()
-	addCheckBox("cbPlasma", "Plasma", true)
+	addTextView("March 4: ")
+	addSpinnerIndex("spAction4", siAction, "NONE")
 	addTextView("  Line Up:  ")
-	addSpinnerIndex("spPlasma", siLine, "NONE")
+	addSpinnerIndex("spLine4", siLine, "NONE")
 	newRow()
-	addCheckBox("cbCrystal", "Crystal", true)
+	addTextView("March 5: ")
+	addSpinnerIndex("spAction5", siAction, "NONE")
 	addTextView("  Line Up:  ")
-	addSpinnerIndex("spCrystal", siLine, "NONE")
-
+	addSpinnerIndex("spLine5", siLine, "NONE")
+	newRow()
 	dialogShowFullScreen("Warhammer 40k Lost Crusade")
 end
 
@@ -120,10 +201,10 @@ function mine(res, line)
 		Region(728, 280, 86, 86):existsClick('Collect.png')
 		wait(1)
 		if cbDebug then line.reg:highlight(.5) end
-                if not line == 1 then
+        if line ~= 1 then
 		    line.reg:existsClick(line.tar)
-                    wait(1)
-                end
+            wait(1)
+        end
 		if cbDebug then Region(973, 597, 86, 86):highlight(.5) end
 		if not Region(973, 597, 86, 86):existsClick('Deploy.png') then
 			Region(1100, 7, 90, 90):existsClick('Close.png')
@@ -161,13 +242,36 @@ function updateVer()
 	end
 end
 
+function cleanup()
+	paint('Cleanup')
+  local clean = {
+    { id = '1', target = 'Base.png', region = Region(45, 580, 80, 80), },
+    { id = '2', target = 'Help.png', region = Region(840, 520, 360, 90), },
+ }
+ 
+	Region(840, 520, 360, 90):highlight(.5)
+	Exit = 0
+	while (Exit == 0)
+	do
+		local id, tar, m = regionWaitMulti(clean, 1, cbDebug, nil, 1, false, false)
+		if (id == -1) then
+			--if Region(135, 0, 130, 130):exists('Power.png') then
+				Exit = 1
+			--end
+		elseif (id ~= nil)  then
+			click(m)
+		end
+	end
+end
+
 --- Main ---
 updateVer()
 
 --Only initialize t / timer ONCE during script!
 dialogLogin()
 
-local CheckTimer = Timer()
+StaTimer = Timer()
+CheckTimer = Timer()
 local check = 0
 
 if password == '40klc@)22' then
@@ -176,12 +280,13 @@ else
 	dialogFull()
 end
 
-local rss = {}
-table.insert(rss, { id = '1', tar = 'MineMetal.png', reg = Region(450, 463, 80, 80)})
-table.insert(rss, { id = '2', tar = 'MineFuel.png', reg = Region(550, 460, 80, 80)})
-table.insert(rss, { id = '3', tar = 'MineAdamantium.png', reg = Region(652, 466, 80, 80)})
-table.insert(rss, { id = '4', tar = 'MinePlasma.png', reg = Region(750, 463, 80, 80)})
-table.insert(rss, { id = '5', tar = 'MineCrystal.png', reg = Region(850, 463, 80, 80)})
+local action = {}
+table.insert(action, { id = '1', tar = 'NONE', reg = Region(450, 463, 80, 80)})
+table.insert(action, { id = '2', tar = 'MineMetal.png', reg = Region(450, 463, 80, 80)})
+table.insert(action, { id = '3', tar = 'MineFuel.png', reg = Region(550, 460, 80, 80)})
+table.insert(action, { id = '4', tar = 'MineAdamantium.png', reg = Region(652, 466, 80, 80)})
+table.insert(action, { id = '5', tar = 'MinePlasma.png', reg = Region(750, 463, 80, 80)})
+table.insert(action, { id = '6', tar = 'MineCrystal.png', reg = Region(850, 463, 80, 80)})
 
 local line = {}
 table.insert(line, { id = '0', tar = 'NONE', reg = Region(450, 463, 80, 80)})
@@ -191,18 +296,37 @@ table.insert(line, { id = '3', tar = 'Line3.png', reg = Region(343, 620, 86, 86)
 table.insert(line, { id = '4', tar = 'Line4.png', reg = Region(414, 620, 86, 86)})
 table.insert(line, { id = '5', tar = 'Line5.png', reg = Region(482, 620, 86, 86)})
 
+local marches = {}
+if (spMarch1 ~= 1) then
+		table.insert(marches, { rss = spAction1, line = spLine1 })
+end
+if (spMarch2 ~= 1) then
+		table.insert(marches, { rss = spAction2, line = spLine2 })
+end
+if (spMarch3 ~= 1) then
+		table.insert(marches, { rss = spAction3, line = spLine3 })
+end
+if (spMarch4 ~= 1) then
+		table.insert(marches, { rss = spAction4, line = spLine4 })
+end
+if (spMarch5 ~= 1) then
+		table.insert(marches, { rss = spAction5, line = spLine5 })
+end
+
 while (true)
 do
 	if (CheckTimer:check() > check) then
 		bFuel, bMetal, bAdamantium, bPlasma, bCrystal = marchcheck()
-		if bMetal and cbMetal then mine(rss[1], line[spMetal]) end
-		if bFuel and cbFuel then mine(rss[2], line[spFuel])	end
-		if bAdamantium and cbAdamantium then mine(rss[3], line[spAdam]) end
-		if bPlasma and cbPlasma then mine(rss[4], line[spPlasma]) end
-		if bCrystal and cbCrystal then mine(rss[5], line[spCrystal]) end
-		check = CheckTimer:check() + 5*60
+		for i, m in ipairs(marches) do
+			print(i, m.rss, m.line)
+			if bMetal and m.rss == 2 then mine(action[m.rss], line[m.line]) end
+			if bFuel and m.rss == 3 then mine(action[m.rss], line[m.line]) end
+			if bAdamantium and m.rss == 4 then mine(action[m.rss], line[m.line]) end
+			if bPlasma and m.rss == 5 then mine(action[m.rss], line[m.line]) end
+			if bCrystal and m.rss == 6 then mine(action[m.rss], line[m.line]) end
+			check = CheckTimer:check() + 5*60
+		end
+		wait(5)
 	end
-	if cbDebug then Region(840, 520, 360, 90):highlight(.5) end
-	Region(840, 520, 360, 90):existsClick('Help.png')
-	wait(5)
+	cleanup()
 end
