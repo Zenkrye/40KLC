@@ -130,9 +130,14 @@ function marchcheck()
 	else
 		cc = true print('Mine Crystal')
 	end
+	if reg:exists('Rallying.png') then
+		rf = false print('Rally Found')
+	else
+		rf = true print('Rally Forces')
+	end
 	Region(4, 215, 90, 90):existsClick('Marches.png')
 	wait(.5)
-	return cf, cm, ca, cp, cc
+	return cf, cm, ca, cp, cc, rf
 end
 
 function dialogLogin()
@@ -146,7 +151,7 @@ function dialogFull()
 	-- Give the user options
 	dialogInit()
 	siLine = {"NONE", "Line 1", "Line 2", "Line 3", "Line 4", "Line 5"}
-	siAction = {"NONE", "Mine Metal", "Mine Fuel", "Mine Adamantium", "Mine Plasma", "Mine Crystal"}
+	siAction = {"NONE", "Mine Metal", "Mine Fuel", "Mine Adamantium", "Mine Plasma", "Mine Crystal", "Rally Forces"}
 	addTextView("Settings")
 	newRow()
 	addTextView("   ")
@@ -180,8 +185,8 @@ function dialogFull()
 	dialogShowFullScreen("Warhammer 40k Lost Crusade")
 end
 
-function mine(res, line)
-	print('Mine ' .. res.tar .. ' ' .. line.tar)
+function task(res)
+	print('Task: ' .. res.tar)
 	if cbDebug then Region(51, 587, 90, 90):highlight(.5) end
 	if Region(51, 587, 90, 90):existsClick('Starmap.png') then
 		if cbDebug then Region(45, 580, 80, 80):highlight(.5) end
@@ -189,7 +194,7 @@ function mine(res, line)
 		wait(1)
 	end
 	if cbDebug then Region(1070, 529, 80, 80):highlight(.5) end
-	if Region(1070, 529, 80, 80):existsClick('Search.png') then
+	if Region(1070, 529, 80, 80):existsClick('MapSearch.png') then
 		wait(1)
 		if cbDebug then res.reg:highlight(.5) end
 		res.reg:existsClick(res.tar)
@@ -197,28 +202,57 @@ function mine(res, line)
 		if cbDebug then Region(884, 612, 80, 80):highlight(.5) end
 		Region(884, 612, 80, 80):existsClick('Explore.png')
 		wait(1)
-		if cbDebug then Region(728, 280, 86, 86):highlight(.5) end
-		Region(728, 280, 86, 86):existsClick('Collect.png')
-		wait(1)
+	end
+end
+
+function mine(res, line)
+	if cbDebug then Region(728, 280, 86, 86):highlight(.5) end
+	Region(728, 280, 86, 86):existsClick('Collect.png')
+	wait(1)
+	if cbDebug then line.reg:highlight(.5) end
+    if line ~= 1 then
+		line.reg:existsClick(line.tar)
+        wait(1)
+    end
+	if cbDebug then Region(973, 597, 86, 86):highlight(.5) end
+	if not Region(973, 597, 86, 86):existsClick('Deploy.png') then
+		Region(1100, 7, 90, 90):existsClick('Close.png')
+	end
+	wait(1)
+end
+
+function rally(res, line)
+	if cbDebug then Region(727, 230, 90, 90):highlight(.5) end
+	Region(727, 230, 90, 90):existsClick('Rally.png')		
+	wait(1)
+	if cbDebug then Region(762, 537, 70, 70):highlight(.5) end
+	Region(762, 537, 70, 70):existsClick('RallyAttack.png')
+	wait(1)
+	if Region(673, 406, 90, 90):exists('RestoreAP.png') then
+		--if cbDebug then Region(1100, 7, 90, 90):highlight(.5) end
+		--Region(1100, 7, 90, 90):existsClick('Close.png')
+		--Region(1100, 7, 90, 90):existsClick('Close.png')
+	else
 		if cbDebug then line.reg:highlight(.5) end
-        if line ~= 1 then
-		    line.reg:existsClick(line.tar)
-            wait(1)
-        end
+ 	   if line ~= 1 then
+			line.reg:existsClick(line.tar)
+ 	       wait(1)
+ 	    end
 		if cbDebug then Region(973, 597, 86, 86):highlight(.5) end
 		if not Region(973, 597, 86, 86):existsClick('Deploy.png') then
 			Region(1100, 7, 90, 90):existsClick('Close.png')
 		end
-		wait(1)
 	end
+	wait(1)
 end
 
 function updateVer()
 	local imgs = { 'Starmap.png',  'Explore.png', 'MineCrystal.png', 'MinePlasma.png', 'MineAdamantium.png',
-							 'MineFuel.png', 'MineMetal.png', 'Base.png', 'Search.png', 'CollectMetal.png',
+							 'MineFuel.png', 'MineMetal.png', 'Base.png', 'MapSearch.png', 'CollectMetal.png',
 							'CollectFuel.png', 'CollectAdamantium.png', 'CollectPlasma.png', 'Marches.png',
 							'Line5.png', 'Line4.png', 'Line3.png', 'Line2.png', 'Line1.png', 'Collect.png', 'Deploy.png',
-							'Help.png', 'Close.png', 'CollectCrystal.png' }
+							'Fleet.png', 'Forces.png', 'AttackAP.png', 'Rally.png', 'Rallying.png', 'RallyAttack.png',
+							'Help.png', 'Close.png', 'CollectCrystal.png', 'Search.png', 'Train.png', 'Build.png', 'RestoreAP.png' }
 
 -- Setup Github and check for updates
 	gitVersion = loadstring(httpGet("https://raw.githubusercontent.com/Zenkrye/40KLC/main/40KLCver.lua"))
@@ -228,17 +262,15 @@ function updateVer()
 	if curVersion == webVersion then
     	toast ("You are running the most current version!")
 	else
+		toast ("Updating files, this may take a few minutes")
  	   httpDownload("https://raw.github.com/Zenkrye/40KLC/main/40KLCver.lua", ROOT .."40KLCver.lua")
 		httpDownload("https://raw.github.com/Zenkrye/40KLC/main/40KLC.luae3", ROOT .."40KLC.luae3")
 		for i = 1, table.getn(imgs) do
-			toast ("Updating files " .. i .. " of " .. table.getn(imgs))
 			gitImg = "https://raw.github.com/Zenkrye/40KLC/main/Images/" .. imgs[i]
-			--print(gitImg .. " Dir: " .. DIR_IMAGES .. " Img: " .. imgs[i].pat)
-			--print(gitImg .. DIR_IMAGES .. imgs[i].pat)
 			httpDownload(gitImg , DIR_IMAGES .. "/" .. imgs[i])
 			total = i
 		end 	 
-		scriptExit("Star Trek Fleet Command has been updated! " .. total .. " images updated")
+		scriptExit("Warhammer 40K Lost Crusade has been updated! " .. total .. " images updated")
 	end
 end
 
@@ -264,14 +296,30 @@ function cleanup()
 	end
 end
 
+function checkqueue(img)
+	print('Check Queue: ' .. img)
+	if Region(4, 215, 90, 90):existsClick('Marches.png') then
+		--print('Marches Found')
+		wait(3)
+	end
+	reg = Region(430, 170, 90, 280)
+	if cbDebug then reg:highlight(1) end
+	results = listToTable(reg:findAllNoFindException(Pattern(img)))
+	if Region(4, 215, 90, 90):existsClick('Marches.png') then
+		--print('Close Marches')
+		wait(1)
+	end
+	return table.getn(results)
+end
+
 --- Main ---
 updateVer()
-
 --Only initialize t / timer ONCE during script!
-dialogLogin()
-
 StaTimer = Timer()
 CheckTimer = Timer()
+
+dialogLogin()
+
 local check = 0
 
 if password == '40klc@)22' then
@@ -287,6 +335,8 @@ table.insert(action, { id = '3', tar = 'MineFuel.png', reg = Region(550, 460, 80
 table.insert(action, { id = '4', tar = 'MineAdamantium.png', reg = Region(652, 466, 80, 80)})
 table.insert(action, { id = '5', tar = 'MinePlasma.png', reg = Region(750, 463, 80, 80)})
 table.insert(action, { id = '6', tar = 'MineCrystal.png', reg = Region(850, 463, 80, 80)})
+table.insert(action, { id = '7', tar = 'Fleet.png', reg = Region(336, 448, 100, 100)})
+table.insert(action, { id = '8', tar = 'Forces.png', reg = Region(232, 452, 100, 100)})
 
 local line = {}
 table.insert(line, { id = '0', tar = 'NONE', reg = Region(450, 463, 80, 80)})
@@ -297,35 +347,40 @@ table.insert(line, { id = '4', tar = 'Line4.png', reg = Region(414, 620, 86, 86)
 table.insert(line, { id = '5', tar = 'Line5.png', reg = Region(482, 620, 86, 86)})
 
 local marches = {}
-if (spMarch1 ~= 1) then
+if (spAction1 ~= 1) then
 		table.insert(marches, { rss = spAction1, line = spLine1 })
 end
-if (spMarch2 ~= 1) then
+if (spAction2 ~= 1) then
 		table.insert(marches, { rss = spAction2, line = spLine2 })
 end
-if (spMarch3 ~= 1) then
+if (spAction3 ~= 1) then
 		table.insert(marches, { rss = spAction3, line = spLine3 })
 end
-if (spMarch4 ~= 1) then
+if (spAction4 ~= 1) then
 		table.insert(marches, { rss = spAction4, line = spLine4 })
 end
-if (spMarch5 ~= 1) then
+if (spAction5 ~= 1) then
 		table.insert(marches, { rss = spAction5, line = spLine5 })
 end
 
 while (true)
 do
 	if (CheckTimer:check() > check) then
-		bFuel, bMetal, bAdamantium, bPlasma, bCrystal = marchcheck()
-		for i, m in ipairs(marches) do
-			print(i, m.rss, m.line)
-			if bMetal and m.rss == 2 then mine(action[m.rss], line[m.line]) end
-			if bFuel and m.rss == 3 then mine(action[m.rss], line[m.line]) end
-			if bAdamantium and m.rss == 4 then mine(action[m.rss], line[m.line]) end
-			if bPlasma and m.rss == 5 then mine(action[m.rss], line[m.line]) end
-			if bCrystal and m.rss == 6 then mine(action[m.rss], line[m.line]) end
-			check = CheckTimer:check() + 5*60
+		test = 5 - checkqueue('Search.png')
+		print ('Check: ' .. test .. ' < Marches: ' .. table.getn(marches))
+		if test < table.getn(marches) then
+			bFuel, bMetal, bAdamantium, bPlasma, bCrystal, bRally = marchcheck()
+			for i, m in ipairs(marches) do
+				--print(i, m.rss, m.line)
+				if bMetal and m.rss == 2 then task(action[m.rss]) mine(action[m.rss], line[m.line]) end
+				if bFuel and m.rss == 3 then task(action[m.rss]) mine(action[m.rss], line[m.line]) end
+				if bAdamantium and m.rss == 4 then task(action[m.rss]) mine(action[m.rss], line[m.line]) end
+				if bPlasma and m.rss == 5 then task(action[m.rss]) mine(action[m.rss], line[m.line]) end
+				if bCrystal and m.rss == 6 then task(action[m.rss]) mine(action[m.rss], line[m.line]) end
+				if bRally and m.rss == 7 then task(action[m.rss]) rally(action[m.rss], line[m.line]) end
+			end
 		end
+		check = CheckTimer:check() + 5*60
 		wait(5)
 	end
 	cleanup()
