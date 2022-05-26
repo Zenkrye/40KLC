@@ -252,12 +252,15 @@ function rally(res, line)
 end
 
 function updateVer()
-	local imgs = { 'Starmap.png',  'Explore.png', 'MineCrystal.png', 'MinePlasma.png', 'MineAdamantium.png',
-							 'MineFuel.png', 'MineMetal.png', 'Base.png', 'MapSearch.png', 'CollectMetal.png',
-							'CollectFuel.png', 'CollectAdamantium.png', 'CollectPlasma.png', 'Marches.png',
-							'Line5.png', 'Line4.png', 'Line3.png', 'Line2.png', 'Line1.png', 'Collect.png', 'Deploy.png',
-							'Fleet.png', 'Forces.png', 'AttackAP.png', 'Rally.png', 'Rallying.png', 'RallyAttack.png',
-							'Help.png', 'Close.png', 'CollectCrystal.png', 'Search.png', 'Train.png', 'Build.png', 'RestoreAP.png' }
+	local imgs = { 'AllianceAid.png', 'AttackAP.png', 'Back.png', 'Base.png', 'Build.png', 'Collect.png', 
+							'CollectMetal.png', 'CollectFuel.png', 'CollectAdamantium.png', 'CollectPlasma.png',
+							'Close.png', 'CollectCrystal.png', 'Deploy.png', 'Explore.png', 'Fleet.png', 'Forces.png', 
+							'Help.png', 'Line5.png', 'Line4.png', 'Line3.png', 'Line2.png', 'Line1.png',
+							'MapSearch.png',  'Marches.png', 'MineCrystal.png', 'MinePlasma.png', 'MineAdamantium.png',
+							'MineFuel.png', 'MineMetal.png', 'Rally.png', 'Rallying.png', 'RallyAttack.png',
+							'Research01.png', 'Research02.png', 'Research03.png', 'Research04.png', 
+							'RestoreAP.png', 'Search.png', 'Train.png', 'Starmap.png', 
+							'Train.png', 'TrainDread.png', 'TrainUnits.png',   }
 
 -- Setup Github and check for updates
 	gitVersion = loadstring(httpGet("https://raw.githubusercontent.com/Zenkrye/40KLC/main/40KLCver.lua"))
@@ -268,14 +271,14 @@ function updateVer()
     	toast ("You are running the most current version!")
 	else
 		toast ("Updating files, this may take a few minutes")
- 	   httpDownload("https://raw.github.com/Zenkrye/40KLC/main/40KLCver.lua", ROOT .."40KLCver.lua")
-		httpDownload("https://raw.github.com/Zenkrye/40KLC/main/40KLC.luae3", ROOT .."40KLC.luae3")
-		for i = 1, table.getn(imgs) do
+ 	   for i = 1, table.getn(imgs) do
 			gitImg = "https://raw.github.com/Zenkrye/40KLC/main/Images/" .. imgs[i]
 			httpDownload(gitImg , DIR_IMAGES .. "/" .. imgs[i])
 			total = i
 		end 	 
 		scriptExit("Warhammer 40K Lost Crusade has been updated! " .. total .. " images updated")
+		httpDownload("https://raw.github.com/Zenkrye/40KLC/main/40KLCver.lua", ROOT .."40KLCver.lua")
+		httpDownload("https://raw.github.com/Zenkrye/40KLC/main/40KLC.luae3", ROOT .."40KLC.luae3")
 	end
 end
 
