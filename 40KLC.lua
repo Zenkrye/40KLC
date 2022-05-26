@@ -271,14 +271,13 @@ function updateVer()
     	toast ("You are running the most current version!")
 	else
 		toast ("Updating files, this may take a few minutes")
+		httpDownload("https://raw.github.com/Zenkrye/40KLC/main/40KLCver.lua", ROOT .."40KLCver.lua")
+		httpDownload("https://raw.github.com/Zenkrye/40KLC/main/40KLC.luae3", ROOT .."40KLC.luae3")
  	   for i = 1, table.getn(imgs) do
 			gitImg = "https://raw.github.com/Zenkrye/40KLC/main/Images/" .. imgs[i]
 			httpDownload(gitImg , DIR_IMAGES .. "/" .. imgs[i])
 			total = i
 		end 	 
-		httpDownload("https://raw.github.com/Zenkrye/40KLC/main/40KLCver.lua", ROOT .."40KLCver.lua")
-		httpDownload("https://raw.github.com/Zenkrye/40KLC/main/40KLC.luae3", ROOT .."40KLC.luae3")
-		wait(5)
 		scriptExit("Warhammer 40K Lost Crusade has been updated! " .. total .. " images updated")
 	end
 end
