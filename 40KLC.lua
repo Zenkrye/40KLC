@@ -276,9 +276,9 @@ function updateVer()
 			httpDownload(gitImg , DIR_IMAGES .. "/" .. imgs[i])
 			total = i
 		end 	 
-		scriptExit("Warhammer 40K Lost Crusade has been updated! " .. total .. " images updated")
 		httpDownload("https://raw.github.com/Zenkrye/40KLC/main/40KLCver.lua", ROOT .."40KLCver.lua")
 		httpDownload("https://raw.github.com/Zenkrye/40KLC/main/40KLC.luae3", ROOT .."40KLC.luae3")
+		scriptExit("Warhammer 40K Lost Crusade has been updated! " .. total .. " images updated")
 	end
 end
 
