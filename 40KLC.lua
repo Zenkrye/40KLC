@@ -1,6 +1,6 @@
 -- Script Settings --
-SIMILAR = 0.80
-TIMEOUT = 3
+SIMILAR = 0.50
+TIMEOUT = 5
 
 immersive = true
 setImmersiveMode(immersive)
@@ -156,6 +156,10 @@ function dialogFull()
 	newRow()
 	addTextView("   ")
 	addCheckBox("cbDebug", "Debug Highlights", false)
+	addTextView("   ")
+	addCheckBox("cbResearch", "Research", false)
+	addTextView("   ")
+	addCheckBox("cbDread", "Dreadnought", false)
 	newRow()
 	addTextView("March 1: ")
 	addSpinnerIndex("spAction1", siAction, "NONE")
@@ -189,12 +193,13 @@ function task(res)
 	print('Task: ' .. res.tar)
 	if cbDebug then Region(51, 587, 90, 90):highlight(.5) end
 	if Region(51, 587, 90, 90):existsClick('Starmap.png') then
+		wait(3)
 		if cbDebug then Region(45, 580, 80, 80):highlight(.5) end
-		Region(45, 580, 80, 80):wait('Base.png', 10)
+		Region(45, 580, 80, 80):wait('Base.png', 60)
 		wait(1)
 	end
-	if cbDebug then Region(1070, 529, 80, 80):highlight(.5) end
-	if Region(1070, 529, 80, 80):existsClick('MapSearch.png') then
+	if cbDebug then Region(840, 520, 420, 90):highlight(.5) end
+	if Region(840, 520, 420, 90):existsClick('MapSearch.png') then
 		wait(1)
 		if cbDebug then res.reg:highlight(.5) end
 		res.reg:existsClick(res.tar)
@@ -278,10 +283,11 @@ function cleanup()
 	paint('Cleanup')
   local clean = {
     { id = '1', target = 'Base.png', region = Region(45, 580, 80, 80), },
-    { id = '2', target = 'Help.png', region = Region(840, 520, 360, 90), },
+    { id = '2', target = 'Back.png', region = Region(0, 0, 90, 90), },
+    { id = '3', target = 'Help.png', region = Region(840, 520, 420, 90), },
  }
  
-	Region(840, 520, 360, 90):highlight(.5)
+	Region(840, 520, 420, 90):highlight(.5)
 	Exit = 0
 	while (Exit == 0)
 	do
@@ -298,20 +304,64 @@ end
 
 function checkqueue(img)
 	print('Check Queue: ' .. img)
-	if Region(4, 215, 90, 90):existsClick('Marches.png') then
+	if cbDebug then Region(5, 130, 90, 330):highlight(.5) end
+	if Region(5, 130, 90, 330):existsClick(Pattern(img)) then
 		--print('Marches Found')
 		wait(3)
 	end
-	reg = Region(430, 170, 90, 280)
+	reg = Region(430, 120, 90, 500)
 	if cbDebug then reg:highlight(1) end
-	results = listToTable(reg:findAllNoFindException(Pattern(img)))
-	if Region(4, 215, 90, 90):existsClick('Marches.png') then
+	results = listToTable(reg:findAllNoFindException(Pattern('Search.png')))
+	if Region(5, 130, 90, 330):existsClick(Pattern(img)) then
 		--print('Close Marches')
 		wait(1)
 	end
 	return table.getn(results)
 end
 
+function research()
+	if Region(5, 130, 90, 330):existsClick(Pattern('Train.png')) then
+		--print('Marches Found')
+		wait(3)
+	end
+	if cbDebug then Region(140, 460, 80, 80):highlight(.5) end
+	if cbDebug then Region(430, 460, 80, 80):highlight(.5) end
+	if Region(140, 460, 80, 80):exists('Research01.png') and Region(430, 460, 80, 80):exists('Search.png') then
+		print('Go Research')
+		Region(140, 460, 80, 80):existsClick(Pattern('Research01.png'))
+		wait(1)
+		if Region(729, 434, 80, 80):existsClick(Pattern('Research02.png')) then
+			wait(2)
+			Region(460, 610, 80, 80):highlight(.5)
+			Region(460, 610, 80, 80):existsClick(Pattern('Research03.png'))
+			wait(1)
+			Region(977, 560, 80, 80):existsClick(Pattern('Research04.png'))
+			wait(1)
+			Region(784, 557, 80, 80):existsClick(Pattern('AllianceAid.png'))
+			wait(2)
+			Region(780, 5, 500, 300):highlight(.5)
+			Region(780, 5, 500, 300):existsClick(Pattern('Close.png'))
+			wait(2)
+		end
+		repeat
+			if cbDebug then Region(0, 0, 90, 90):highlight(.5) end
+			Region(0, 0, 90, 90):existsClick(Pattern('Back.png'))
+		until Region(51, 587, 90, 90):exists('Starmap.png')
+	else
+		if Region(5, 130, 90, 330):existsClick(Pattern('Train.png')) then
+			--print('Marches Found')
+			wait(3)
+		end
+	end
+end
+
+function train(unit)
+	if Region(140, 250, 80, 80):exists(unit) and Region(430, 250, 80, 80):exists('Search.png') then
+		print('Train Dread')
+	else
+		print('Already Training Dread')
+	end
+end
 --- Main ---
 updateVer()
 --Only initialize t / timer ONCE during script!
@@ -330,13 +380,13 @@ end
 
 local action = {}
 table.insert(action, { id = '1', tar = 'NONE', reg = Region(450, 463, 80, 80)})
-table.insert(action, { id = '2', tar = 'MineMetal.png', reg = Region(450, 463, 80, 80)})
-table.insert(action, { id = '3', tar = 'MineFuel.png', reg = Region(550, 460, 80, 80)})
-table.insert(action, { id = '4', tar = 'MineAdamantium.png', reg = Region(652, 466, 80, 80)})
-table.insert(action, { id = '5', tar = 'MinePlasma.png', reg = Region(750, 463, 80, 80)})
-table.insert(action, { id = '6', tar = 'MineCrystal.png', reg = Region(850, 463, 80, 80)})
-table.insert(action, { id = '7', tar = 'Fleet.png', reg = Region(336, 448, 100, 100)})
-table.insert(action, { id = '8', tar = 'Forces.png', reg = Region(232, 452, 100, 100)})
+table.insert(action, { id = '2', tar = 'MineMetal.png', reg = Region(450, 460, 120, 80)})
+table.insert(action, { id = '3', tar = 'MineFuel.png', reg = Region(550, 460, 120, 80)})
+table.insert(action, { id = '4', tar = 'MineAdamantium.png', reg = Region(650, 460, 120, 80)})
+table.insert(action, { id = '5', tar = 'MinePlasma.png', reg = Region(750, 460, 120, 80)})
+table.insert(action, { id = '6', tar = 'MineCrystal.png', reg = Region(850, 460, 120, 80)})
+table.insert(action, { id = '7', tar = 'Fleet.png', reg = Region(350, 460, 120, 100)})
+table.insert(action, { id = '8', tar = 'Forces.png', reg = Region(250, 460, 120, 100)})
 
 local line = {}
 table.insert(line, { id = '0', tar = 'NONE', reg = Region(450, 463, 80, 80)})
@@ -346,29 +396,41 @@ table.insert(line, { id = '3', tar = 'Line3.png', reg = Region(343, 620, 86, 86)
 table.insert(line, { id = '4', tar = 'Line4.png', reg = Region(414, 620, 86, 86)})
 table.insert(line, { id = '5', tar = 'Line5.png', reg = Region(482, 620, 86, 86)})
 
+local totMarch = 0
 local marches = {}
 if (spAction1 ~= 1) then
 		table.insert(marches, { rss = spAction1, line = spLine1 })
+		totMarch = totMarch + 1
 end
 if (spAction2 ~= 1) then
 		table.insert(marches, { rss = spAction2, line = spLine2 })
+		totMarch = totMarch + 1
 end
 if (spAction3 ~= 1) then
 		table.insert(marches, { rss = spAction3, line = spLine3 })
+		totMarch = totMarch + 1
 end
 if (spAction4 ~= 1) then
 		table.insert(marches, { rss = spAction4, line = spLine4 })
+		totMarch = totMarch + 1
 end
 if (spAction5 ~= 1) then
 		table.insert(marches, { rss = spAction5, line = spLine5 })
+		totMarch = totMarch + 1
 end
 
 while (true)
 do
 	if (CheckTimer:check() > check) then
-		test = 5 - checkqueue('Search.png')
-		print ('Check: ' .. test .. ' < Marches: ' .. table.getn(marches))
-		if test < table.getn(marches) then
+		if cbResearch then research() end
+		if cbDread then train('TrainDread.png') end
+		--build = checkqueue('Build.png')
+		--print ('Check: ' .. build .. ' <= Build: 2 ')
+		--wait(2)
+		march = 5 - checkqueue('Marches.png')
+		print ('Check: ' .. march .. ' <= Marches: ' .. totMarch)
+		wait(2)
+		if march <= totMarch then
 			bFuel, bMetal, bAdamantium, bPlasma, bCrystal, bRally = marchcheck()
 			for i, m in ipairs(marches) do
 				--print(i, m.rss, m.line)
@@ -380,7 +442,10 @@ do
 				if bRally and m.rss == 7 then task(action[m.rss]) rally(action[m.rss], line[m.line]) end
 			end
 		end
-		check = CheckTimer:check() + 5*60
+		--train = checkqueue('Train.png')
+		--print ('Check: ' .. train .. ' <= Train: 7 ')
+		--wait(2)
+		check = CheckTimer:check() + math.random(180, 360)
 		wait(5)
 	end
 	cleanup()
