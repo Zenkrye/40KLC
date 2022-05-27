@@ -239,7 +239,7 @@ function rally(res, line)
 		--Region(1100, 7, 90, 90):existsClick('Close.png')
 	else
 		if cbDebug then line.reg:highlight(.5) end
- 	   if line ~= 1 then
+ 	   if line ~= 0 then
 			line.reg:existsClick(line.tar)
  	       wait(1)
  	    end
